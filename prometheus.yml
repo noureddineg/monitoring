@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+
+rule_files:
+  - "rules/*.yml"
+  - "rules/windows_resources.yml"
+  - "rules/recording.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['localhost:9093']
+
+scrape_configs:
+  - job_name: 'lab-app-service'
+    static_configs:
+      - targets: ['localhost:9183']
+  - job_name: 'windows-metrics'
+    static_configs:
+      - targets: ['localhost:9182']

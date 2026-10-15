@@ -1,0 +1,24 @@
+groups:
+  - name: windows_saturation
+    rules:
+      # Alerte 1 : Le CPU dépasse 85% pendant 3 minutes
+      - alert: HighCPUUsage
+        expr: (instance:cpu_utilisation:ratio * 100) > 85
+        for: 3m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "CPU surchargé sur {{ $labels.instance }}"
+          description: "L'utilisation CPU est de {{ $value | printf \"%.1f\" }}% depuis 3 minutes."
+
+      # Alerte 2 : Prédiction de disque plein (predict_linear)
+      - alert: DiskSpaceRunningOut
+        expr: predict_linear(windows_logical_disk_free_bytes{volume="C:"}[1h], 4 * 3600) < 0
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Le disque C: sera bientôt plein"
+          description: "À ce rythme, le disque C: sera saturé dans moins de 4 heures. (Actuellement: {{ $value | humanize }} octets libres)."

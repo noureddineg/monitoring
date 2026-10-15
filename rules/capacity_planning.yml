@@ -1,0 +1,32 @@
+groups:
+  - name: capacity_forecasting
+    rules:
+      # Étape 4.1 : Prédiction Disque
+      - alert: DiskSpaceWillRunOut
+        expr: |
+          predict_linear(
+            windows_logical_disk_free_bytes{volume="C:"}[1h],
+            4 * 3600
+          ) < 5 * 1024 * 1024 * 1024
+        for: 10m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Drive {{ $labels.volume }} on {{ $labels.instance }} predicted to fill up soon"
+          description: "Drive {{ $labels.volume }} is predicted to have less than 5 GiB free within 4 hours (predicted value: {{ $value | humanize1024 }}B)."
+
+      # Étape 4.2 : Prédiction CPU
+      - alert: HighCPUForecast
+        expr: |
+          predict_linear(
+            (1 - avg by (instance) (rate(windows_cpu_time_total{mode="idle"}[5m])))[1h:5m],
+            2 * 3600
+          ) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          team: infrastructure
+        annotations:
+          summary: "Forecast: CPU saturation expected on {{ $labels.instance }}"
+          description: "CPU utilisation is forecast to exceed 90% within 2 hours (forecast: {{ $value | humanizePercentage }})."

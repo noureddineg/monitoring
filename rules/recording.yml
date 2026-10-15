@@ -1,0 +1,5 @@
+groups:
+  - name: cpu_recording
+    rules:
+      - record: instance:cpu_utilisation:ratio
+        expr: 1 - avg by (instance) (rate(windows_cpu_time_total{mode="idle"}[5m]))
